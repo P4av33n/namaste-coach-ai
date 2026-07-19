@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namaste Coach – AI Interview Simulator | Crack Any Tech Interview</title>
+    <meta name="description" content="AI-powered mock interview simulator with real-time speech analysis, body language tracking, and personalized feedback. Prepare for any role at any company.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="aurora-bg">
+        <div class="aurora-layer aurora-1"></div>
+        <div class="aurora-layer aurora-2"></div>
+        <div class="aurora-layer aurora-3"></div>
+        <div class="mesh-grid"></div>
+    </div>
+    <div class="particle-field" id="particle-field"></div>
+
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <div class="logo-ring"></div>
+                    <i data-lucide="brain" class="logo-brain-icon"></i>
+                </div>
+                <span class="logo-text">Namaste<span class="highlight">Coach</span></span>
+                <span class="badge pulse-badge">AI v2.0</span>
+            </div>
+            <div class="header-right">
+                <div class="header-status">
+                    <span id="api-status-dot" class="dot-indicator red"></span>
+                    <span id="api-status-text" class="status-msg">Checking API...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!-- ONBOARDING SCREEN                          -->
+            <!-- ═══════════════════════════════════════════ -->
+            <section id="onboarding-screen" class="setup-section active">
+                <div class="setup-grid">
+                    <!-- Left Hero Panel -->
+                    <div class="setup-info-panel">
+                        <div class="hero-labels">
+                            <span class="sub-label"><i data-lucide="sparkles"></i> AI-Powered Interview Coach</span>
+                            <h1>Ace Any Interview.<br><span class="gradient-text">Any Role. Any Company.</span></h1>
+                            <p>Tell us who you are and where you're interviewing. Our AI interviewer will conduct a personalized, realistic mock interview — calling you by name, tailoring questions to your role, and giving expert feedback.</p>
+                        </div>
+                        <div class="features-grid">
+                            <div class="feature-card glass-card">
+                                <div class="f-icon"><i data-lucide="mic"></i></div>
+                                <h4>Voice-First</h4>
+                                <p>Speak naturally. Whisper AI transcribes and analyzes every word.</p>
+                            </div>
+                            <div class="feature-card glass-card">
+                                <div class="f-icon accent"><i data-lucide="scan-face"></i></div>
+                                <h4>Body Language</h4>
+                                <p>Camera tracks eye contact, posture & expressions in real-time.</p>
+                            </div>
+                            <div class="feature-card glass-card">
+                                <div class="f-icon success"><i data-lucide="target"></i></div>
+                                <h4>Adaptive AI</h4>
+                                <p>Questions get harder or easier based on your performance.</p>
+                            </div>
+                            <div class="feature-card glass-card">
+                                <div class="f-icon warning"><i data-lucide="file-text"></i></div>
+                                <h4>Expert Reports</h4>
+                                <p>Download detailed scorecards with expert-level model answers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Config Panel -->
+                    <div class="setup-card glass-panel">
+                        <div class="card-header-row">
+                            <div class="card-icon"><i data-lucide="settings-2"></i></div>
+                            <div>
+                                <h3>Configure Your Interview</h3>
+                                <p class="card-subtitle">Personalize every detail</p>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="candidate-name"><i data-lucide="user" class="label-icon"></i> Your Name</label>
+                                <input type="text" id="candidate-name" placeholder="e.g. Praveen" class="text-input" autocomplete="off" />
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="role-input"><i data-lucide="briefcase" class="label-icon"></i> Target Role</label>
+                                    <input type="text" id="role-input" placeholder="e.g. Senior React Engineer" class="text-input" autocomplete="off" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="level-input"><i data-lucide="layers" class="label-icon"></i> Experience Level</label>
+                                    <input type="text" id="level-input" placeholder="e.g. Mid-Level, Senior, Lead" class="text-input" autocomplete="off" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="company-input"><i data-lucide="building-2" class="label-icon"></i> Target Company</label>
+                                <input type="text" id="company-input" placeholder="e.g. Google, Flipkart, Zoho, any startup..." class="text-input" autocomplete="off" />
+                            </div>
+
+                            <div class="form-group">
+                                <label for="jd-input"><i data-lucide="file-text" class="label-icon"></i> Job Description <span class="optional-tag">optional</span></label>
+                                <textarea id="jd-input" placeholder="Paste the job description here for hyper-targeted questions..." class="text-input textarea-input" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <p class="section-subheading"><i data-lucide="user-cog" class="label-icon"></i> Interviewer Preferences</p>
+                            <div class="gender-toggle-row">
+                                <label class="gender-option" id="gender-female-label">
+                                    <input type="radio" name="interviewer-gender" value="female" checked />
+                                    <div class="gender-pill">
+                                        <div class="gender-avatar female-avatar">P</div>
+                                        <div>
+                                            <span class="gender-name">Priya Sharma</span>
+                                            <span class="gender-desc">Female Interviewer</span>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="gender-option" id="gender-male-label">
+                                    <input type="radio" name="interviewer-gender" value="male" />
+                                    <div class="gender-pill">
+                                        <div class="gender-avatar male-avatar">A</div>
+                                        <div>
+                                            <span class="gender-name">Arjun Mehta</span>
+                                            <span class="gender-desc">Male Interviewer</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <p class="section-subheading"><i data-lucide="shield-check" class="label-icon"></i> Device Permissions</p>
+                            <div class="device-toggles">
+                                <div class="toggle-card" id="toggle-camera-btn">
+                                    <div class="toggle-left">
+                                        <i data-lucide="video" class="device-icon"></i>
+                                        <span>Webcam</span>
+                                    </div>
+                                    <div class="toggle-indicator" id="cam-status">Click to Allow</div>
+                                </div>
+                                <div class="toggle-card" id="toggle-mic-btn">
+                                    <div class="toggle-left">
+                                        <i data-lucide="mic" class="device-icon"></i>
+                                        <span>Microphone</span>
+                                    </div>
+                                    <div class="toggle-indicator" id="mic-status">Click to Allow</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="start-interview-btn" class="btn btn-primary btn-glow" disabled>
+                            <span>Launch Interview</span>
+                            <i data-lucide="rocket"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!-- ACTIVE INTERVIEW SCREEN                    -->
+            <!-- ═══════════════════════════════════════════ -->
+            <section id="interview-screen" class="interview-section">
+                <div class="interview-grid">
+                    <!-- Left: Camera + Waveform -->
+                    <div class="media-container glass-panel">
+                        <div class="video-feed-wrapper">
+                            <video id="webcam-view" autoplay muted playsinline></video>
+                            <div class="hud-overlay">
+                                <div class="hud-item cam-recording-status">
+                                    <span class="red-record-dot"></span>
+                                    <span>LIVE</span>
+                                </div>
+                                <div id="eye-contact-badge" class="hud-item eyes-tracking">
+                                    <i data-lucide="view"></i>
+                                    <span>Eyes Calibrated</span>
+                                </div>
+                            </div>
+                            <canvas id="snapshot-canvas" style="display: none;"></canvas>
+                        </div>
+
+                        <div class="voice-wave-wrapper">
+                            <div class="mic-icon-circle" id="mic-active-glow">
+                                <i data-lucide="mic" id="mic-control-icon"></i>
+                            </div>
+                            <div class="voice-bars" id="voice-bars-container">
+                                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                                <div class="bar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Question + Controls -->
+                    <div class="control-container glass-panel">
+                        <div class="question-tracker">
+                            <span>Question <strong id="question-count">1</strong> of 3</span>
+                            <div class="progress-bar-track">
+                                <div id="session-progress" class="progress-fill" style="width: 33.3%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="interviewer-header">
+                            <div class="avatar-speaker-wrapper">
+                                <div class="avatar-speaker" id="interviewer-avatar">
+                                    <span id="interviewer-avatar-letter">P</span>
+                                </div>
+                                <div class="avatar-ring"></div>
+                            </div>
+                            <div>
+                                <h4 class="speaker-name" id="interviewer-display-name">Priya Sharma</h4>
+                                <span class="speaker-role" id="interviewer-display-role">Senior Technical Interviewer</span>
+                            </div>
+                        </div>
+
+                        <!-- Question Display -->
+                        <div class="question-box">
+                            <p id="active-question-text">Preparing your first question...</p>
+                        </div>
+
+                        <!-- Code Sandbox -->
+                        <div class="form-group sandbox-container">
+                            <label for="code-sandbox-editor" class="sandbox-label">
+                                <span><i data-lucide="code-2" class="label-icon"></i> Code Sandbox</span>
+                                <span class="ai-checked-tag">AI Evaluated</span>
+                            </label>
+                            <textarea id="code-sandbox-editor" placeholder="// Write your code solution here (optional)&#10;// e.g. function solve(input) { ... }"></textarea>
+                        </div>
+
+                        <!-- Recording Controls -->
+                        <div class="actions-panel">
+                            <div class="actions-top-row">
+                                <div class="action-help-text" id="action-hint">
+                                    Ready to record. Click "Start Answering".
+                                </div>
+                                <div id="recording-timer" class="rec-timer" style="display: none;">
+                                    <span class="rec-dot"></span>
+                                    <span id="timer-text">00:00</span>
+                                </div>
+                            </div>
+
+                            <div class="controls-row">
+                                <button id="record-action-btn" class="btn btn-action ready-to-record">
+                                    <i data-lucide="mic"></i>
+                                    <span>Start Answering</span>
+                                </button>
+                                <button id="submit-answer-btn" class="btn btn-primary" disabled>
+                                    <i data-lucide="send"></i>
+                                    <span>Submit Answer</span>
+                                </button>
+                            </div>
+
+                            <button id="end-early-btn" class="btn btn-ghost">
+                                <i data-lucide="log-out"></i>
+                                <span>End Interview Early</span>
+                            </button>
+                        </div>
+
+                        <!-- Processing Loader -->
+                        <div class="loading-overlay" id="processing-loader">
+                            <div class="loader-rings">
+                                <div class="ring ring-1"></div>
+                                <div class="ring ring-2"></div>
+                                <div class="ring ring-3"></div>
+                            </div>
+                            <p>Analyzing your response...</p>
+                            <span class="sub-loader-text">Whisper transcribing...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!-- QUESTION FEEDBACK MODAL                    -->
+            <!-- ═══════════════════════════════════════════ -->
+            <section id="question-feedback-screen" class="feedback-modal">
+                <div class="feedback-dialog glass-panel">
+                    <div class="feedback-header">
+                        <h2><i data-lucide="clipboard-check" class="header-icon"></i> Question Analysis</h2>
+                        <button id="close-feedback-btn" class="btn-close"><i data-lucide="x"></i></button>
+                    </div>
+
+                    <div class="feedback-layout">
+                        <div class="feedback-stats">
+                            <div class="gauge-card">
+                                <h3>Technical</h3>
+                                <div class="gauge-display" id="feedback-gauge-tech">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="40" class="bg-circle" />
+                                        <circle cx="50" cy="50" r="40" class="fg-circle" id="tech-gauge-circle" />
+                                    </svg>
+                                    <span id="tech-gauge-value">0%</span>
+                                </div>
+                            </div>
+                            <div class="gauge-card">
+                                <h3>Communication</h3>
+                                <div class="gauge-display" id="feedback-gauge-comm">
+                                    <svg viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="40" class="bg-circle" />
+                                        <circle cx="50" cy="50" r="40" class="fg-circle comm" id="comm-gauge-circle" />
+                                    </svg>
+                                    <span id="comm-gauge-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feedback-details-scroll">
+                            <div class="review-block">
+                                <h4><i data-lucide="message-square" class="review-icon"></i> Your Answer Transcript</h4>
+                                <div class="transcript-review-box" id="transcript-review">Loading...</div>
+                            </div>
+
+                            <div class="review-block filler-words-block">
+                                <h4><i data-lucide="alert-circle" class="review-icon"></i> Filler Words</h4>
+                                <div class="fillers-pills" id="fillers-container"></div>
+                            </div>
+
+                            <div class="accordion-tab open">
+                                <div class="acc-head" onclick="toggleAcc(this)">
+                                    <h4>Technical Review</h4>
+                                    <i data-lucide="chevron-down"></i>
+                                </div>
+                                <div class="acc-body" id="tech-critique-content">Loading...</div>
+                            </div>
+
+                            <div class="accordion-tab">
+                                <div class="acc-head" onclick="toggleAcc(this)">
+                                    <h4>Communication Style</h4>
+                                    <i data-lucide="chevron-down"></i>
+                                </div>
+                                <div class="acc-body" id="comm-critique-content">Loading...</div>
+                            </div>
+
+                            <div class="accordion-tab">
+                                <div class="acc-head" onclick="toggleAcc(this)">
+                                    <h4>Body Language</h4>
+                                    <i data-lucide="chevron-down"></i>
+                                </div>
+                                <div class="acc-body" id="body-critique-content">Loading...</div>
+                            </div>
+
+                            <div class="review-block expert-block">
+                                <div class="expert-header">
+                                    <h4><i data-lucide="graduation-cap" class="review-icon"></i> Expert Model Answer</h4>
+                                    <button id="speak-expert-btn" class="btn-icon" title="Listen to Expert Answer">
+                                        <i data-lucide="volume-2"></i>
+                                    </button>
+                                </div>
+                                <div class="expert-answer-box" id="expert-phrasing">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-footer">
+                        <button id="next-question-btn" class="btn btn-primary btn-glow">
+                            <span>Next Question</span>
+                            <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════ -->
+            <!-- RESULTS DASHBOARD                          -->
+            <!-- ═══════════════════════════════════════════ -->
+            <section id="results-screen" class="results-section">
+                <div class="results-layout">
+                    <div class="results-header-card glass-panel">
+                        <div class="trophy-icon-wrapper">
+                            <i data-lucide="trophy" class="trophy-icon"></i>
+                        </div>
+                        <h2>Interview Complete!</h2>
+                        <p id="results-subtitle">Great work! Here's your performance breakdown.</p>
+                        <button id="results-speak-btn" class="btn btn-ghost btn-sm">
+                            <i data-lucide="volume-2"></i>
+                            <span>Listen to Summary</span>
+                        </button>
+                        <div class="overall-scores-row">
+                            <div class="overall-card">
+                                <span class="score-label">Overall Score</span>
+                                <span class="score-main-grade" id="overall-total-score">0</span>
+                                <span class="score-subtext" id="overall-rank">Evaluating...</span>
+                            </div>
+                            <div class="overall-card coral">
+                                <span class="score-label">Filler Words</span>
+                                <span class="score-main-grade" id="overall-total-fillers">0</span>
+                                <span class="score-subtext">Across all questions</span>
+                            </div>
+                            <div class="overall-card emerald">
+                                <span class="score-label">Body Language</span>
+                                <span class="score-main-grade" id="overall-body-score">85</span>
+                                <span class="score-subtext">Presentation score</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-card glass-panel">
+                        <h3><i data-lucide="trending-up" class="section-icon"></i> Performance Trends</h3>
+                        <div class="charts-canvas-wrapper">
+                            <canvas id="resultsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="transcript-logs-card glass-panel">
+                        <h3><i data-lucide="list" class="section-icon"></i> Detailed Q&A Log</h3>
+                        <div class="questions-log-list" id="questions-summary-log"></div>
+                    </div>
+
+                    <div class="results-actions">
+                        <button id="download-report-btn" class="btn btn-ghost">
+                            <i data-lucide="download"></i>
+                            <span>Download Report</span>
+                        </button>
+                        <button id="restart-interview-btn" class="btn btn-primary btn-glow">
+                            <i data-lucide="refresh-cw"></i>
+                            <span>New Interview</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="app-footer">
+            <p>&copy; 2026 Namaste Coach. Built with OpenAI APIs for the Namaste Dev × OpenAI Hackathon.</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleAcc(header) {
+            const tab = header.parentElement;
+            tab.classList.toggle('open');
+        }
+    </script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
