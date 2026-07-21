@@ -20,14 +20,17 @@ client = None
 if api_key and api_key != "YOUR_OPENAI_API_KEY":
     client = OpenAI(api_key=api_key)
 
-def get_openai_client():
+def get_openai_client(custom_key=None):
     global client
+    if custom_key and custom_key.strip() and custom_key.strip().startswith("sk-"):
+        return OpenAI(api_key=custom_key.strip())
+    
     load_dotenv(override=True)
     api_key = os.getenv("OPENAI_API_KEY")
     if api_key and api_key != "YOUR_OPENAI_API_KEY":
         client = OpenAI(api_key=api_key)
     else:
-        raise ValueError("OpenAI API key not set. Please configure OPENAI_API_KEY in your .env file.")
+        raise ValueError("OpenAI API key not set. Please configure OPENAI_API_KEY in your .env file or enter a custom key in the header status dropdown.")
     return client
 
 @app.route('/api/check-key', methods=['GET'])
@@ -56,9 +59,10 @@ def generate_question():
     job_description = data.get('job_description', '')
     interviewer_name = data.get('interviewer_name', 'Priya')
     history = data.get('history', [])
+    custom_key = data.get('custom_api_key', '')
 
     try:
-        openai_client = get_openai_client()
+        openai_client = get_openai_client(custom_key)
 
         adaptive_instruction = ""
         if history:
@@ -139,7 +143,10 @@ Respond with ONLY a JSON object:
 @app.route('/api/analyze-answer', methods=['POST'])
 def analyze_answer():
     try:
-        openai_client = get_openai_client()
+        custom_key = request.form.get('custom_api_key', '')
+        browser_transcript = request.form.get('browser_transcript', '')
+
+        openai_client = get_openai_client(custom_key)
 
         if 'audio' not in request.files:
             return jsonify({"error": "No audio file provided"}), 400
@@ -170,6 +177,7 @@ def analyze_answer():
 
         # Transcribe audio using Whisper
         print(f"Transcribing {audio_path}...")
+        user_transcript = browser_transcript
         try:
             with open(audio_path, "rb") as f:
                 transcript_response = openai_client.audio.transcriptions.create(
@@ -179,7 +187,9 @@ def analyze_answer():
             user_transcript = transcript_response.text
         except Exception as e:
             print("Whisper transcription error:", e)
-            return jsonify({"error": f"Failed to transcribe audio: {str(e)}"}), 500
+            if not user_transcript or not user_transcript.strip():
+                return jsonify({"error": f"Failed to transcribe audio. OpenAI Whisper Error: {str(e)}"}), 500
+            print("Whisper failed, using fallback browser_transcript instead:", user_transcript)
         finally:
             if os.path.exists(audio_path):
                 os.remove(audio_path)
@@ -288,4 +298,5 @@ Response MUST be valid JSON:
         }), 200
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
