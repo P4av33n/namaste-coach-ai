@@ -19,6 +19,11 @@ const maxQuestions = 3;
 let currentQuestionText = "";
 let sessionHistory = [];
 
+// Custom API Key and Speech Recognition State
+let customApiKey = localStorage.getItem('namaste_coach_api_key') || '';
+let browserSpeechRecognition = null;
+let browserTranscriptText = '';
+
 // Preloaded voices
 let voicesReady = false;
 let cachedVoices = [];
@@ -85,6 +90,14 @@ const expertPhrasing = document.getElementById('expert-phrasing');
 const nextQuestionBtn = document.getElementById('next-question-btn');
 const closeFeedbackBtn = document.getElementById('close-feedback-btn');
 
+// Custom API Key Panel elements
+const apiStatusTrigger = document.getElementById('api-status-trigger');
+const apiKeyPanel = document.getElementById('api-key-panel');
+const customApiKeyInput = document.getElementById('custom-api-key-input');
+const toggleKeyVisibilityBtn = document.getElementById('toggle-key-visibility');
+const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+const clearApiKeyBtn = document.getElementById('clear-api-key-btn');
+
 const overallTotalScore = document.getElementById('overall-total-score');
 const overallTotalFillers = document.getElementById('overall-total-fillers');
 const overallBodyScore = document.getElementById('overall-body-score');
@@ -121,6 +134,38 @@ if ('speechSynthesis' in window) {
             clearInterval(voiceInterval);
         }
     }, 150);
+}
+
+// ═══════ Speech Recognition fallback initialization ═══════
+function initializeSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        browserSpeechRecognition = new SpeechRecognition();
+        browserSpeechRecognition.continuous = true;
+        browserSpeechRecognition.interimResults = true;
+        browserSpeechRecognition.lang = 'en-US';
+
+        browserSpeechRecognition.onresult = (event) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    browserTranscriptText += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            const hintEl = document.getElementById('action-hint');
+            if (hintEl && mediaRecorder && mediaRecorder.state === 'recording') {
+                hintEl.innerHTML = `<span style="color: #00d2ff; font-weight: 700;">Live Transcript:</span> "${browserTranscriptText + interimTranscript}"`;
+            }
+        };
+
+        browserSpeechRecognition.onerror = (e) => {
+            console.warn('SpeechRecognition error:', e.error);
+        };
+    } else {
+        console.warn('Web Speech API is not supported in this browser.');
+    }
 }
 
 // ═══════ INITIALIZATION ═══════
@@ -165,6 +210,58 @@ document.addEventListener('DOMContentLoaded', () => {
     [candidateNameInput, roleInput, levelInput, companyInput].forEach(input => {
         input.addEventListener('input', checkReadyToStart);
     });
+
+    // Custom API Key toggle panel behavior
+    if (apiStatusTrigger && apiKeyPanel) {
+        apiStatusTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            apiKeyPanel.classList.toggle('visible');
+        });
+
+        // Hide when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!apiKeyPanel.contains(e.target) && !apiStatusTrigger.contains(e.target)) {
+                apiKeyPanel.classList.remove('visible');
+            }
+        });
+    }
+
+    // Toggle visibility of input
+    if (toggleKeyVisibilityBtn && customApiKeyInput) {
+        toggleKeyVisibilityBtn.addEventListener('click', () => {
+            const isPass = customApiKeyInput.type === 'password';
+            customApiKeyInput.type = isPass ? 'text' : 'password';
+            toggleKeyVisibilityBtn.querySelector('i').setAttribute('data-lucide', isPass ? 'eye-off' : 'eye');
+            lucide.createIcons();
+        });
+    }
+
+    // Save key
+    if (saveApiKeyBtn && customApiKeyInput) {
+        saveApiKeyBtn.addEventListener('click', () => {
+            const val = customApiKeyInput.value.trim();
+            customApiKey = val;
+            localStorage.setItem('namaste_coach_api_key', val);
+            apiKeyPanel.classList.remove('visible');
+            checkAPIKey();
+            alert('Custom API Key saved successfully!');
+        });
+    }
+
+    // Clear key
+    if (clearApiKeyBtn && customApiKeyInput) {
+        clearApiKeyBtn.addEventListener('click', () => {
+            customApiKey = '';
+            customApiKeyInput.value = '';
+            localStorage.removeItem('namaste_coach_api_key');
+            apiKeyPanel.classList.remove('visible');
+            checkAPIKey();
+            alert('Custom API Key cleared!');
+        });
+    }
+
+    // Initialize local speech recognition fallback
+    initializeSpeechRecognition();
 });
 
 // ═══════ Particles ═══════
@@ -204,6 +301,12 @@ function spawnParticles() {
 
 // ═══════ API Key ═══════
 async function checkAPIKey() {
+    if (customApiKey && customApiKey.trim().startsWith('sk-')) {
+        apiDot.className = 'dot-indicator green';
+        apiMsg.textContent = 'Custom Key Active';
+        if (customApiKeyInput) customApiKeyInput.value = customApiKey;
+        return;
+    }
     try {
         const res = await fetch('/api/check-key');
         const data = await res.json();
@@ -416,7 +519,8 @@ async function getNextQuestion() {
                 company: sessionConfig.company,
                 job_description: sessionConfig.jobDescription,
                 interviewer_name: sessionConfig.interviewerName,
-                history: sessionHistory
+                history: sessionHistory,
+                custom_api_key: customApiKey
             })
         });
         clearTimeout(timeout);
@@ -467,6 +571,16 @@ function startRecordingSpeech() {
     recordedFrames = [];
     captureVideoSnapshot();
     frameIntervalId = setInterval(captureVideoSnapshot, 5000);
+
+    browserTranscriptText = '';
+    if (browserSpeechRecognition) {
+        try {
+            browserSpeechRecognition.start();
+            console.log('Local speech recognition started');
+        } catch (e) {
+            console.warn('Recognition start warning:', e);
+        }
+    }
 
     recordingTimer.style.display = 'flex';
     timerSeconds = 0;
@@ -522,6 +636,15 @@ function stopRecordingSpeech() {
     if (timerIntervalId) clearInterval(timerIntervalId);
     recordingTimer.style.display = 'none';
 
+    if (browserSpeechRecognition) {
+        try {
+            browserSpeechRecognition.stop();
+            console.log('Local speech recognition stopped');
+        } catch (e) {
+            console.warn('Recognition stop warning:', e);
+        }
+    }
+
     // Visual: back to ready state
     recordActionBtn.querySelector('span').textContent = 'Re-record';
     recordActionBtn.classList.remove('recording');
@@ -566,6 +689,8 @@ async function submitAnswerForAnalysis() {
         formData.append('job_description', sessionConfig.jobDescription);
         formData.append('question', currentQuestionText);
         formData.append('interviewer_name', sessionConfig.interviewerName);
+        formData.append('browser_transcript', browserTranscriptText.trim());
+        formData.append('custom_api_key', customApiKey);
 
         const codeSandbox = document.getElementById('code-sandbox-editor');
         formData.append('code_sample', codeSandbox ? codeSandbox.value : '');
