@@ -34,9 +34,26 @@
                 <span class="badge pulse-badge">AI v2.0</span>
             </div>
             <div class="header-right">
-                <div class="header-status">
-                    <span id="api-status-dot" class="dot-indicator red"></span>
-                    <span id="api-status-text" class="status-msg">Checking API...</span>
+                <div class="api-key-dropdown">
+                    <div class="header-status" id="api-status-trigger" title="Click to manage custom API Key">
+                        <span id="api-status-dot" class="dot-indicator red"></span>
+                        <span id="api-status-text" class="status-msg">Checking API...</span>
+                        <i data-lucide="key" class="key-icon" style="margin-left: 4px; width: 13px; height: 13px; opacity: 0.7;"></i>
+                    </div>
+                    <div class="api-key-panel" id="api-key-panel">
+                        <h4>OpenAI API Key</h4>
+                        <p class="panel-desc">Paste a custom OpenAI API key (sk-...) to bypass server limits. Stored safely in your browser.</p>
+                        <div class="key-input-row">
+                            <input type="password" id="custom-api-key-input" placeholder="sk-proj-..." autocomplete="off" />
+                            <button id="toggle-key-visibility" class="btn-icon-sm" title="Toggle Visibility">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <div class="panel-actions">
+                            <button id="save-api-key-btn" class="btn btn-primary btn-sm">Save</button>
+                            <button id="clear-api-key-btn" class="btn btn-ghost btn-sm">Clear</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
